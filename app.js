@@ -1,15 +1,41 @@
 'use strict';
 
 const express = require('express');
-const { Server } = require('ws');
 const path = require('path');
 const Ably = require('ably/promises');
+const cors = require('cors');
 
-const { authRouter } = require('./express/router/auth');
+const authRouter = require('./src/express/router/auth');
 
 const PORT = 3000;
 
+
+require('dotenv').config();
+const runMongo = require('./src/db/mongoose');
+runMongo();
+
+
 const app = express();
+
+app.use(express.json());
+app.use(cors());
+app.options('*', cors());
+
+app.use((req, res, next) => {
+  console.log(req.body);
+
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, PATCH, DELETE, OPTIONS');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization, Content-Length, X-Requested-With'
+  );
+  if (req.originalUrl.includes('/api')) {
+    res.setHeader('Content-Type', 'application/json');
+  }
+
+  next();
+});
 
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -20,20 +46,16 @@ app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 
 async function publishSubscribe() {
-
-  // Connect to Ably with your API key
   const ably = new Ably.Realtime.Promise("cc6thQ.GaMm8w:rHG21ntho-AWdF_fmCW6CGD6bELldxtbXM-V_QNc1Bk")
   ably.connection.once("connected", () => {
     console.log("Connected to Ably!")
   })
 
-  // Create a channel called 'get-started' and register a listener to subscribe to all messages with the name 'first'
   const channel = ably.channels.get("get-started")
   await channel.subscribe("first", (message) => {
     console.log("Message received: " + message.data)
   });
 
-  // Publish a message with the name 'first' and the contents 'Here is my first message!'
   await channel.publish("first", "Here is my first message!")
 
   // Close the connection to Ably after a 5 second delay

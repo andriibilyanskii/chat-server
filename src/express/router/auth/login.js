@@ -1,3 +1,43 @@
-export const login = (req, res) => {
+const User = require("../../../model/users");
 
+const login = async (req, res) => {
+    try {
+        const { username } = req.body;
+
+        if (!username) {
+            throw new Error();
+        }
+
+        const user = await User.findOne({ username: username });
+
+        if (!user) {
+            const user_register = new User({
+                createdDate: new Date().toISOString(),
+                username
+            })
+
+            await user_register?.save();
+        }
+
+        const token = jwt.sign(
+            {
+                userID: user._id,
+                username: username,
+            },
+            'secretkey',
+            {
+                expiresIn: '365d',
+            }
+        );
+        user.token = token;
+        res.status(200).send({
+            ...successObj,
+            jwt_token: token,
+        });
+
+    } catch (e) {
+        res.status(500).send('error');
+    }
 }
+
+module.exports = login;
