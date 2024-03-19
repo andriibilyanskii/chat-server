@@ -34,27 +34,48 @@ const socketIO = new Server(server, {
 	},
 });
 
+let usersOnline = [];
 let users = [];
 
 socketIO.on('connection', (socket) => {
-	console.log(`${socket.id} user just connected!`);
+	console.log(`${socket.id} user connected!`);
+
+	socketIO.emit('onConnect', users);
+
 	socket.on('message', (data) => {
-		console.log(data)
+		console.log(data);
 		socketIO.emit('messageResponse', data);
 	});
 
-	socket.on('typing', (data) => socket.broadcast.emit('typingResponse', data));
-
 	socket.on('newUser', (data) => {
-		users.push(data);
-		socketIO.emit('newUserResponse', users);
+		usersOnline.push(data);
 
-		console.log(data);
+		if (users?.find((e) => e?.username === data?.username)) {
+			users = users.map((user) => {
+				if (user.username !== data?.username) {
+					return user;
+				} else {
+					return { ...data, isOnline: true };
+				}
+			});
+		} else {
+			users.push({ ...data, isOnline: true });
+		}
+
+		socketIO.emit('newUserResponse', users);
 	});
 
 	socket.on('disconnect', () => {
-		console.log('A user disconnected');
-		users = users.filter((user) => user.socketID !== socket.id);
+		console.log(`${socket.id} disconnected`);
+
+		usersOnline = usersOnline.filter((user) => user.socketID !== socket.id);
+		users = users.map((user) => {
+			if (user.socketID !== socket.id) {
+				return user;
+			} else {
+				return { ...user, isOnline: false };
+			}
+		});
 		socketIO.emit('newUserResponse', users);
 		socket.disconnect();
 	});
