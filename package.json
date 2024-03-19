@@ -4,15 +4,11 @@
 	"description": "",
 	"main": "app.js",
 	"dependencies": {
-		"ably": "^1.2.49",
-		"bufferutil": "^4.0.8",
 		"cors": "^2.8.5",
 		"dotenv": "^16.4.5",
 		"express": "^4.18.3",
 		"jsonwebtoken": "^9.0.2",
 		"mongoose": "^8.2.2",
-		"nodemon": "^3.1.0",
-		"utf-8-validate": "^6.0.3",
 		"uuid": "^9.0.1",
 		"ws": "^8.16.0"
 	},
@@ -25,6 +21,7 @@
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
+		"nodemon": "^3.1.0",
 		"prettier": "^3.2.5"
 	}
 }

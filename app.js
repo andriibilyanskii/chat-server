@@ -2,7 +2,6 @@
 
 const express = require('express');
 const path = require('path');
-const Ably = require('ably/promises');
 const cors = require('cors');
 
 const { WebSocketServer } = require('ws');
@@ -53,18 +52,19 @@ const wsServer = new WebSocketServer({ server });
 const connections = {};
 const users = {};
 
-const handleMessage = (bytes, uuid) => {
+const handleMessage = (bytes, uuid, _id) => {
 	const message = JSON.parse(bytes.toString());
 
 	console.log(message);
-	const user = users[uuid];
+
+	const user = users[_id];
 	user.state = message;
 	broadcast(uuid);
 };
 
-const handleClose = (uuid) => {
+const handleClose = (_id, uuid) => {
 	delete connections[uuid];
-	delete users[uuid];
+	delete users[_id];
 	broadcast();
 };
 
@@ -79,40 +79,19 @@ const broadcast = (uuidMe) => {
 };
 
 wsServer.on('connection', (connection, request) => {
-	const { username } = url.parse(request.url, true).query;
+	const { _id } = url.parse(request.url, true).query;
+
 	const uuid = uuidv4();
-	console.log(`${uuid} connected`);
+
+	console.log(`${_id} | ${uuid} connected`);
+
 	connections[uuid] = connection;
-	users[uuid] = {
-		username,
+	users[_id] = {
+		_id,
 		state: {},
 	};
-	connection.on('message', (message) => handleMessage(message, uuid));
-	connection.on('close', () => handleClose(uuid));
+	connection.on('message', (message) => handleMessage(message, uuid, _id));
+	connection.on('close', () => handleClose(_id, uuid));
 });
 
 server.listen(PORT, () => console.log(`Listening on ${PORT}`));
-
-// async function publishSubscribe() {
-//   const ably = new Ably.Realtime.Promise("cc6thQ.GaMm8w:rHG21ntho-AWdF_fmCW6CGD6bELldxtbXM-V_QNc1Bk")
-//   ably.connection.once("connected", () => {
-//     console.log("Connected to Ably!")
-//   })
-
-//   const channel = ably.channels.get("get-started")
-//   await channel.subscribe("first", (message) => {
-//     console.log("Message received: " + message.data)
-//   });
-
-//   await channel.publish("first", "Here is my first message!")
-
-//   // Close the connection to Ably after a 5 second delay
-//   // setTimeout(async () => {
-//   //   ably.connection.close();
-//   //     await ably.connection.once("closed", function () {
-//   //       console.log("Closed the connection to Ably.")
-//   //     });
-//   // }, 5000);
-// }
-
-// publishSubscribe();
