@@ -9,13 +9,13 @@ const http = require('http');
 const uuidv4 = require('uuid').v4;
 const url = require('url');
 
-const authRouter = require('./src/express/router/auth');
-const testRouter = require('./src/express/router/test');
+const authRouter = require('../src/express/router/auth');
+const testRouter = require('../src/express/router/test');
 
 const PORT = 8080;
 
 require('dotenv').config();
-const runMongo = require('./src/db/mongoose');
+const runMongo = require('../src/db/mongoose');
 runMongo();
 
 const app = express();
