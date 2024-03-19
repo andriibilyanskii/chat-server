@@ -36,6 +36,7 @@ const socketIO = new Server(server, {
 
 let usersOnline = [];
 let users = [];
+let messages = [];
 
 socketIO.on('connection', (socket) => {
 	console.log(`${socket.id} user connected!`);
@@ -43,7 +44,7 @@ socketIO.on('connection', (socket) => {
 	socketIO.emit('onConnect', users);
 
 	socket.on('message', (data) => {
-		console.log(data);
+		messages.push(data);
 		socketIO.emit('messageResponse', data);
 	});
 
@@ -76,6 +77,7 @@ socketIO.on('connection', (socket) => {
 				return { ...user, isOnline: false };
 			}
 		});
+
 		socketIO.emit('newUserResponse', users);
 		socket.disconnect();
 	});

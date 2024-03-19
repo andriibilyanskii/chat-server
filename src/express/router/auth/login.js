@@ -1,49 +1,40 @@
 const jwt = require('jsonwebtoken');
 const User = require('../../../model/users');
 const getJSON = require('../../../utils/getJSON');
-const defExport = require('../../../../api/app');
 
 const login = async (req, res) => {
 	try {
-		// const { username } = req.body;
+		const { username } = req.body;
 
-		// const users = defExport.users;
+		if (!username) {
+			throw new Error();
+		}
 
-		// if (!username) {
-		// 	throw new Error();
-		// }
+		let user = getJSON(await User.findOne({ username: username }));
 
-		// let user = Object.entries(users).find(e => e[1].username === username)
+		if (!user) {
+			const user_register = new User({
+				createdDate: new Date().toISOString(),
+				username,
+			});
 
-		// console.log('u', user)
+			user = getJSON(await user_register?.save());
+		}
 
-		// defExport.socketIO.emit("newUser", { userName, socketID: socket.id })
-
-		// console.log(users)
-
-		// if (!user) {
-		// 	// const user_register = new User({
-		// 	// 	createdDate: new Date().toISOString(),
-		// 	// 	username,
-		// 	// });
-
-		// 	// user = getJSON(await user_register?.save());
-		// }
-
-		// const token = jwt.sign(
-		// 	{
-		// 		userID: user._id,
-		// 		username: username,
-		// 	},
-		// 	'secretkey',
-		// 	{
-		// 		expiresIn: '365d',
-		// 	}
-		// );
+		const token = jwt.sign(
+			{
+				userID: user._id,
+				username: username,
+			},
+			'secretkey',
+			{
+				expiresIn: '365d',
+			}
+		);
 
 		res.status(200).send({
-			token: 'a',
-			// ...user,
+			token,
+			...user,
 		});
 	} catch (e) {
 		res.status(500).send('error');
