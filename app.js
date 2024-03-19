@@ -2,17 +2,17 @@
 
 const express = require('express');
 const path = require('path');
+const Ably = require('ably/promises');
 const cors = require('cors');
 
-// const { WebSocketServer } = require('ws');
+const { WebSocketServer } = require('ws');
 const http = require('http');
-// const uuidv4 = require('uuid').v4;
-// const url = require('url');
+const uuidv4 = require('uuid').v4;
+const url = require('url');
 
 const authRouter = require('./src/express/router/auth');
-const testRouter = require('./src/express/router/test');
 
-const PORT = 8080;
+const PORT = 3000;
 
 require('dotenv').config();
 const runMongo = require('./src/db/mongoose');
@@ -46,9 +46,7 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/static', express.static(__dirname + 'public/static'));
-
 app.use('/api', authRouter);
-app.use('/api', testRouter)
 
 // const wsServer = new WebSocketServer({ server });
 
@@ -98,3 +96,27 @@ app.use('/api', testRouter)
 // });
 
 server.listen(PORT, () => console.log(`Listening on ${PORT}`));
+
+async function publishSubscribe() {
+	const ably = new Ably.Realtime.Promise("cc6thQ.GaMm8w:rHG21ntho-AWdF_fmCW6CGD6bELldxtbXM-V_QNc1Bk")
+	ably.connection.once("connected", () => {
+		console.log("Connected to Ably!")
+	})
+
+	const channel = ably.channels.get("get-started")
+	await channel.subscribe("first", (message) => {
+		console.log("Message received: " + message.data)
+	});
+
+	await channel.publish("first", "Here is my first message!")
+
+	// Close the connection to Ably after a 5 second delay
+	// setTimeout(async () => {
+	//   ably.connection.close();
+	//     await ably.connection.once("closed", function () {
+	//       console.log("Closed the connection to Ably.")
+	//     });
+	// }, 5000);
+}
+
+publishSubscribe();
