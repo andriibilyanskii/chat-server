@@ -50,51 +50,51 @@ app.use('/static', express.static(__dirname + 'public/static'));
 app.use('/api', authRouter);
 app.use('/api', testRouter)
 
-const wsServer = new WebSocketServer({ server });
+// const wsServer = new WebSocketServer({ server });
 
-const connections = {};
-const users = {};
+// const connections = {};
+// const users = {};
 
-const handleMessage = (bytes, uuid, _id) => {
-	const message = JSON.parse(bytes.toString());
+// const handleMessage = (bytes, uuid, _id) => {
+// 	const message = JSON.parse(bytes.toString());
 
-	console.log(message);
+// 	console.log(message);
 
-	const user = users[_id];
-	user.state = message;
-	broadcast(uuid);
-};
+// 	const user = users[_id];
+// 	user.state = message;
+// 	broadcast(uuid);
+// };
 
-const handleClose = (_id, uuid) => {
-	delete connections[uuid];
-	delete users[_id];
-	broadcast();
-};
+// const handleClose = (_id, uuid) => {
+// 	delete connections[uuid];
+// 	delete users[_id];
+// 	broadcast();
+// };
 
-const broadcast = (uuidMe) => {
-	Object.keys(connections).forEach((uuid) => {
-		if (uuidMe !== uuid) {
-			const connection = connections[uuid];
-			const message = JSON.stringify(users);
-			connection.send(message);
-		}
-	});
-};
+// const broadcast = (uuidMe) => {
+// 	Object.keys(connections).forEach((uuid) => {
+// 		if (uuidMe !== uuid) {
+// 			const connection = connections[uuid];
+// 			const message = JSON.stringify(users);
+// 			connection.send(message);
+// 		}
+// 	});
+// };
 
-wsServer.on('connection', (connection, request) => {
-	const { _id } = url.parse(request.url, true).query;
+// wsServer.on('connection', (connection, request) => {
+// 	const { _id } = url.parse(request.url, true).query;
 
-	const uuid = uuidv4();
+// 	const uuid = uuidv4();
 
-	console.log(`${_id} | ${uuid} connected`);
+// 	console.log(`${_id} | ${uuid} connected`);
 
-	connections[uuid] = connection;
-	users[_id] = {
-		_id,
-		state: {},
-	};
-	connection.on('message', (message) => handleMessage(message, uuid, _id));
-	connection.on('close', () => handleClose(_id, uuid));
-});
+// 	connections[uuid] = connection;
+// 	users[_id] = {
+// 		_id,
+// 		state: {},
+// 	};
+// 	connection.on('message', (message) => handleMessage(message, uuid, _id));
+// 	connection.on('close', () => handleClose(_id, uuid));
+// });
 
 server.listen(PORT, () => console.log(`Listening on ${PORT}`));
