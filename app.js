@@ -10,8 +10,9 @@ const uuidv4 = require('uuid').v4;
 const url = require('url');
 
 const authRouter = require('./src/express/router/auth');
+const testRouter = require('./src/express/router/test');
 
-const PORT = 3000;
+const PORT = 8080;
 
 require('dotenv').config();
 const runMongo = require('./src/db/mongoose');
@@ -45,7 +46,9 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/static', express.static(__dirname + 'public/static'));
+
 app.use('/api', authRouter);
+app.use('/api', testRouter)
 
 const wsServer = new WebSocketServer({ server });
 
