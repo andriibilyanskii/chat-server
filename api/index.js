@@ -10,12 +10,13 @@ const http = require('http');
 const uuidv4 = require('uuid').v4;
 const url = require('url');
 
-const authRouter = require('./src/express/router/auth');
+const authRouter = require('../src/express/router/auth');
+const testRouter = require('../src/express/router/test');
 
 const PORT = 3000;
 
 require('dotenv').config();
-const runMongo = require('./src/db/mongoose');
+const runMongo = require('../src/db/mongoose');
 runMongo();
 
 const app = express();
@@ -29,7 +30,9 @@ app.use(cors());
 app.options('*', cors());
 
 app.use((req, res, next) => {
-	console.log(req.body);
+	if (req.method !== 'GET') {
+		console.log(req.body);
+	}
 
 	res.setHeader('Access-Control-Allow-Origin', '*');
 	res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, PATCH, DELETE, OPTIONS');
@@ -44,9 +47,11 @@ app.use((req, res, next) => {
 	next();
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/static', express.static(__dirname + 'public/static'));
+app.use(express.static(path.join(__dirname, '../public')));
+app.use('/static', express.static(__dirname + '../public/static'));
+
 app.use('/api', authRouter);
+app.use('/api', testRouter);
 
 // const wsServer = new WebSocketServer({ server });
 
@@ -97,26 +102,26 @@ app.use('/api', authRouter);
 
 server.listen(PORT, () => console.log(`Listening on ${PORT}`));
 
-async function publishSubscribe() {
-	const ably = new Ably.Realtime.Promise("cc6thQ.GaMm8w:rHG21ntho-AWdF_fmCW6CGD6bELldxtbXM-V_QNc1Bk")
-	ably.connection.once("connected", () => {
-		console.log("Connected to Ably!")
-	})
+// async function publishSubscribe() {
+// 	const ably = new Ably.Realtime.Promise("cc6thQ.GaMm8w:rHG21ntho-AWdF_fmCW6CGD6bELldxtbXM-V_QNc1Bk")
+// 	ably.connection.once("connected", () => {
+// 		console.log("Connected to Ably!")
+// 	})
 
-	const channel = ably.channels.get("get-started")
-	await channel.subscribe("first", (message) => {
-		console.log("Message received: " + message.data)
-	});
+// 	const channel = ably.channels.get("get-started")
+// 	await channel.subscribe("first", (message) => {
+// 		console.log("Message received: " + message.data)
+// 	});
 
-	await channel.publish("first", "Here is my first message!")
+// 	await channel.publish("first", "Here is my first message!")
 
-	// Close the connection to Ably after a 5 second delay
-	// setTimeout(async () => {
-	//   ably.connection.close();
-	//     await ably.connection.once("closed", function () {
-	//       console.log("Closed the connection to Ably.")
-	//     });
-	// }, 5000);
-}
+// 	// Close the connection to Ably after a 5 second delay
+// 	// setTimeout(async () => {
+// 	//   ably.connection.close();
+// 	//     await ably.connection.once("closed", function () {
+// 	//       console.log("Closed the connection to Ably.")
+// 	//     });
+// 	// }, 5000);
+// }
 
-publishSubscribe();
+// publishSubscribe();
