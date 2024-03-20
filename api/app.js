@@ -3,20 +3,15 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-
-const { WebSocketServer } = require('ws');
 const http = require('http');
-const uuidv4 = require('uuid').v4;
-const url = require('url');
 
 const authRouter = require('../src/express/router/auth');
+const messagesRouter = require('../src/express/router/messages');
 const testRouter = require('../src/express/router/test');
 
 const PORT = 8080;
 
 require('dotenv').config();
-// const runMongo = require('../src/db/mongoose');
-// runMongo();
 
 const app = express();
 
@@ -34,7 +29,6 @@ const socketIO = new Server(server, {
 	},
 });
 
-let usersOnline = [];
 let users = [];
 let messages = [];
 
@@ -49,8 +43,6 @@ socketIO.on('connection', (socket) => {
 	});
 
 	socket.on('newUser', (data) => {
-		usersOnline.push(data);
-
 		if (users?.find((e) => e?.username === data?.username)) {
 			users = users.map((user) => {
 				if (user.username !== data?.username) {
@@ -69,7 +61,6 @@ socketIO.on('connection', (socket) => {
 	socket.on('disconnect', () => {
 		console.log(`${socket.id} disconnected`);
 
-		usersOnline = usersOnline.filter((user) => user.socketID !== socket.id);
 		users = users.map((user) => {
 			if (user.socketID !== socket.id) {
 				return user;
@@ -83,18 +74,12 @@ socketIO.on('connection', (socket) => {
 	});
 });
 
-app.use((req, res, next) => {
-	console.log(req.body);
+module.exports.messages = messages;
 
-	// res.setHeader('Access-Control-Allow-Origin', '*');
-	// res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, PATCH, DELETE, OPTIONS');
-	// res.setHeader(
-	// 	'Access-Control-Allow-Headers',
-	// 	'Content-Type, Authorization, Content-Length, X-Requested-With'
-	// );
-	// if (req.originalUrl.includes('/api')) {
-	// 	res.setHeader('Content-Type', 'application/json');
-	// }
+app.use((req, res, next) => {
+	if (req.method !== 'GET') {
+		console.log(req.body);
+	}
 
 	next();
 });
@@ -103,6 +88,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/static', express.static(__dirname + '../public/static'));
 
 app.use('/api', authRouter);
+app.use('/api', messagesRouter);
 app.use('/api', testRouter);
 
 server.listen(PORT, () => console.log(`Listening on ${PORT}`));
